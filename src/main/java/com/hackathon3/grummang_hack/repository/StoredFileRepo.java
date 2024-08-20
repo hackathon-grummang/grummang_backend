@@ -11,4 +11,17 @@ public interface StoredFileRepo extends JpaRepository<StoredFile, Long> {
 
     Optional<StoredFile> findBySaltedHash(String hash);
 
+    Long getTotalDlpFileSize(int orgId, int saasId);
+
+    Long getTotalMaliciousFileSize(int orgId, int saasId);
+
+    Long getTotalFileSize(int orgId, int saasId);
+
+    int countTotalFiles(int orgId, int saasId);
+
+    int countSensitiveFiles(int orgId, int saasId);
+
+    int countMaliciousFiles(int orgId, int saasId);
+
+    int countConnectedAccounts(int orgId, int saasId);
 }

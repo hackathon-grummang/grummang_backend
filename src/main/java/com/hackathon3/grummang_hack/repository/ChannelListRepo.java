@@ -9,4 +9,8 @@ import java.util.Optional;
 @Repository
 public interface ChannelListRepo extends JpaRepository<ChannelList, Long> {
     Optional<ChannelList> findByChannelId(String channelId);
+
+    int findOrgSaaSIdByChannelId(String teamId);
+
+    boolean existsByChannelId(String channelId);
 }
