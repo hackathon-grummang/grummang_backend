@@ -15,6 +15,8 @@ public interface OrgSaaSRepo extends JpaRepository<OrgSaaS, Integer> {
     String getSpaceID(@Param("spaceId")int workspaceId);
 
     List<OrgSaaS> findBySpaceId(String temp);
+
+    List<OrgSaaS> findByOrgId(Integer orgId);
 }
 
 

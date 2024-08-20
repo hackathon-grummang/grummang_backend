@@ -19,7 +19,9 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class OrgSaasService {
@@ -134,6 +136,37 @@ public class OrgSaasService {
         } else {
             return new OrgSaasResponse( 199, "Not found for ID", null,null);
         }
+    }
+
+    public List<OrgSaasResponse> getOrgSaasList(Integer orgId) {
+        List<OrgSaaS> orgSaaSList = orgSaaSRepo.findByOrgId(orgId);
+
+        List<Integer> configIds = orgSaaSList.stream()
+                .map(OrgSaaS::getId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<WorkspaceConfig> workspaceConfigList = workSpaceConfigRepo.findByIdIn(configIds);
+        Map<Integer, WorkspaceConfig> workspaceConfigMap = workspaceConfigList.stream()
+                .collect(Collectors.toMap(WorkspaceConfig::getId, workspaceConfig -> workspaceConfig));
+
+        return orgSaaSList.stream().map(orgSaaS -> {
+            WorkspaceConfig workspaceConfig = workspaceConfigMap.get(orgSaaS.getId());
+
+            Optional<Saas> saasOptional = saasRepo.findById(Math.toIntExact(orgSaaS.getSaas().getId()));
+            String saasName = saasOptional.map(Saas::getSaasName).orElse("Unknown");
+
+            return new OrgSaasResponse(
+                    workspaceConfig != null ? workspaceConfig.getId() : null,
+                    saasName,
+                    workspaceConfig != null ? workspaceConfig.getAlias() : null,
+                    orgSaaS.getStatus(),
+                    workspaceConfig != null ? workspaceConfig.getSaasAdminEmail() : null,
+                    workspaceConfig != null ? workspaceConfig.getToken() : null,
+                    workspaceConfig != null ? workspaceConfig.getWebhook() : null,
+                    workspaceConfig != null ? workspaceConfig.getRegisterDate() : null
+            );
+        }).collect(Collectors.toList());
     }
 
     public void updateOrgSaasGD(List<String[]> drives, String accessToken) {
