@@ -52,4 +52,8 @@ public interface MonitoredUsersRepo extends JpaRepository<MonitoredUsers, Long> 
                     "    (5 * COUNT(DISTINCT CASE WHEN vr.threat_label != 'none' THEN fu.id END) + COUNT(DISTINCT CASE WHEN dr.dlp = TRUE THEN fu.id END)) DESC " +
                     "LIMIT 5")
     List<Object[]> findTopUsers(@Param("orgId") int orgId, @Param("saasId") int saasId);
+
+
+    @Query("SELECT u FROM MonitoredUsers u WHERE u.userId = :user_id AND u.orgSaaS.id = :orgSaaSId")
+    Optional<MonitoredUsers> fineByUserIdAndorgSaaSId(@Param("user_id") String userId , @Param("orgSaaSId") int orgSaaSId);
 }

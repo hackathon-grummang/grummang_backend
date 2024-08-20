@@ -90,4 +90,5 @@ public interface FileUploadTableRepo extends JpaRepository<FileUploadTable, Long
             "ORDER BY fu.timestamp DESC LIMIT 10")
     List<SlackRecentFileDto> findRecentFilesByOrgIdAndSaasId(@Param("orgId") int orgId, @Param("saasId") int saasId);
 
+    boolean existsBySaasFileIdAndTimestamp(String saasFileId, LocalDateTime timestamp);
 }
