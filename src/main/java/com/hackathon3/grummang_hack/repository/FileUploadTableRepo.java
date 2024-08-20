@@ -1,5 +1,6 @@
 package com.hackathon3.grummang_hack.repository;
 
+
 import com.hackathon3.grummang_hack.model.dto.file.TotalTypeDto;
 import com.hackathon3.grummang_hack.model.dto.slack.file.SlackRecentFileDto;
 import com.hackathon3.grummang_hack.model.entity.FileUploadTable;
@@ -88,4 +89,5 @@ public interface FileUploadTableRepo extends JpaRepository<FileUploadTable, Long
             "AND a.eventType = 'file_upload' " +  // 조건 추가
             "ORDER BY fu.timestamp DESC LIMIT 10")
     List<SlackRecentFileDto> findRecentFilesByOrgIdAndSaasId(@Param("orgId") int orgId, @Param("saasId") int saasId);
+
 }
