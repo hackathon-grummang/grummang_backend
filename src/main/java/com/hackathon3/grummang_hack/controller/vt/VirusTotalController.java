@@ -4,10 +4,8 @@ import com.hackathon3.grummang_hack.config.RabbitMQProperties;
 import com.hackathon3.grummang_hack.model.dto.ResponseDto;
 import com.hackathon3.grummang_hack.model.dto.VtRequestDto;
 import com.hackathon3.grummang_hack.model.dto.VtUploadResponse;
-import com.hackathon3.grummang_hack.repository.AdminRepo;
-import com.hackathon3.grummang_hack.repository.FileUploadRepo;
+import com.hackathon3.grummang_hack.repository.FileUploadTableRepo;
 import com.hackathon3.grummang_hack.service.vt.FileStatusService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,15 +19,14 @@ import java.util.*;
         private final FileStatusService fileStatusService;
         private final RabbitTemplate rabbitTemplate;
         private final RabbitMQProperties properties;
-        private final AdminRepo adminRepo;
-        private final FileUploadRepo fileUploadRepo;
+        private final FileUploadTableRepo fileUploadRepo;
+        private static final long ORG_ID = 1;
 
         @Autowired
-        public VirusTotalController(FileStatusService fileStatusService, RabbitTemplate rabbitTemplate, RabbitMQProperties properties, AdminRepo adminRepo, FileUploadRepo fileUploadRepo) {
+        public VirusTotalController(FileStatusService fileStatusService, RabbitTemplate rabbitTemplate, RabbitMQProperties properties, FileUploadTableRepo fileUploadRepo) {
             this.fileStatusService = fileStatusService;
             this.rabbitTemplate = rabbitTemplate;
             this.properties = properties;
-            this.adminRepo = adminRepo;
             this.fileUploadRepo = fileUploadRepo;
         }
 
@@ -39,30 +36,17 @@ import java.util.*;
         }
 
         @PostMapping("/upload")
-        public ResponseDto<List<VtUploadResponse>> vtUpload(@RequestBody VtRequestDto vtRequestDto, HttpServletRequest servletRequest) {
+        public ResponseDto<List<VtUploadResponse>> vtUpload(@RequestBody VtRequestDto vtRequestDto) {
             Map<String, Object> response = new HashMap<>();
 
-            // JWT 검증 실패 시 에러 메시지 반환
-            String errorMessage = (String) servletRequest.getAttribute("error");
-            if (errorMessage != null) {
-                return ResponseDto.ofFail(errorMessage);
-            }
-
             try {
-                // 요청한 사용자(Admin)의 이메일을 통해 orgId 조회
-                String email = (String) servletRequest.getAttribute("email");
-                long orgId = adminRepo.findByEmail(email)
-                        .orElseThrow(() -> new NoSuchElementException("Admin not found with email: " + email))
-                        .getOrg()
-                        .getId();
-
                 List<VtUploadResponse> results = new ArrayList<>();
 
                 // 파일 ID 목록에 대한 처리
                 for (Long fileId : vtRequestDto.getFileIds()) {
-                    if (!fileUploadRepo.findOrgIdByHash(fileId).orElseThrow(() ->
+                    if (!fileUploadRepo.findOrgIdByFileId(fileId).orElseThrow(() ->
                                     new NoSuchElementException("File not found with id: " + fileId))
-                            .equals(orgId)) {
+                            .equals(ORG_ID)) {
                         response.put("error_message", "Unauthorized access to file.");
                         return ResponseDto.ofFail(response);
                     }
@@ -89,5 +73,3 @@ import java.util.*;
         }
 
     }
-
-}
