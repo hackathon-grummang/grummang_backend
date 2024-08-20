@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VtReportRepo extends JpaRepository<VtReport, Integer> {
+    boolean existsByStoredFileId(long storedFileId);
 }
