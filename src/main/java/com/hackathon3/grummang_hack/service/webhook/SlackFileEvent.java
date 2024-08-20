@@ -45,7 +45,7 @@ public class SlackFileEvent {
             }
             log.info("event : {}", event);
 
-            OrgSaaS orgSaaSObject = orgSaaSRepo.findBySpaceId(spaceId).orElse(null);
+            OrgSaaS orgSaaSObject = orgSaaSRepo.findBySpaceIdUsingQuery(spaceId).orElse(null);
             File fileInfo = slackApiService.fetchFileInfo(fileId, orgSaaSObject.getId());
             if (fileInfo.getMode() == "quip" || fileInfo.getPrettyType() == "캔버스" || fileInfo.getPrettyType() == "canvas"){
                 log.info("File is a quip or canvas file, skipping processing");

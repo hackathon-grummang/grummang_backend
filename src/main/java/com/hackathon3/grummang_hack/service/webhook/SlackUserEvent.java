@@ -28,7 +28,7 @@ public class SlackUserEvent {
             dto.getTeamId();
             String spaceId = dto.getTeamId();
             String userId = dto.getJoinedUserId();
-            OrgSaaS orgSaaSObject = orgSaaSRepo.findBySpaceId(spaceId).get();
+            OrgSaaS orgSaaSObject = orgSaaSRepo.findBySpaceIdUsingQuery(spaceId).get();
             slackUserService.addUser(slackApiService.fetchUserInfo(userId,orgSaaSObject));
             log.info("User event processed successfully");
         } catch (Exception e) {
