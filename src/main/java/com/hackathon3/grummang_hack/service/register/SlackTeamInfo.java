@@ -44,8 +44,9 @@ public class SlackTeamInfo {
             if (jsonNode.path("ok").asBoolean()) {
                 JsonNode teamNode = jsonNode.path("team");
 
-                String teamName = teamNode.path("name").asText("");
-                String teamId = teamNode.path("id").asText("");
+                // asText() 메서드로 변경, 기본값은 null
+                String teamName = teamNode.path("name").asText(); // 기본값은 빈 문자열
+                String teamId = teamNode.path("id").asText(); // 기본값은 빈 문자열
 
                 List<String> teamInfo = new ArrayList<>();
                 teamInfo.add(teamName);
@@ -55,7 +56,7 @@ public class SlackTeamInfo {
                 // 특정 값 반환
                 return teamInfo;
             } else {
-                String error = jsonNode.path("error").asText("Unknown error");
+                String error = jsonNode.path("error").asText(); // 기본값은 빈 문자열
                 throw new IOException("Error: " + error);
             }
         } else {
@@ -63,4 +64,3 @@ public class SlackTeamInfo {
         }
     }
 }
-
