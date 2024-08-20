@@ -95,4 +95,10 @@ public interface ActivitiesRepo extends JpaRepository<Activities, Long> {
     @Query("SELECT COUNT(a) > 0 FROM Activities a WHERE a.saasFileId = :saasFileId AND a.eventTs = :eventTs")
     boolean existsBySaasFileIdAndEventTs(@Param("saasFileId") String saasFileId, @Param("eventTs") LocalDateTime eventTs);
 
+    @Query("SELECT a.user.userId FROM Activities a WHERE a.saasFileId = :fileId AND a.eventType = 'file_upload'")
+    Optional<String> findUserBySaasFileId(@Param("fileId") String fileId);
+
+
+    @Query("SELECT a.fileName FROM Activities a WHERE a.saasFileId = :fileId")
+    Optional<String> findFileNamesBySaasFileId(@Param("fileId")String fileId);
 }

@@ -4,7 +4,9 @@ package com.hackathon3.grummang_hack.repository;
 import com.hackathon3.grummang_hack.model.dto.file.TotalTypeDto;
 import com.hackathon3.grummang_hack.model.dto.slack.file.SlackRecentFileDto;
 import com.hackathon3.grummang_hack.model.entity.FileUploadTable;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -91,4 +93,16 @@ public interface FileUploadTableRepo extends JpaRepository<FileUploadTable, Long
     List<SlackRecentFileDto> findRecentFilesByOrgIdAndSaasId(@Param("orgId") int orgId, @Param("saasId") int saasId);
 
     boolean existsBySaasFileIdAndTimestamp(String saasFileId, LocalDateTime timestamp);
+
+
+    @Query("SELECT fu.orgSaaS.id FROM FileUploadTable fu WHERE fu.id = :fileId")
+    int findOrgSaaSIdByFileId(@Param("fileId") Long fileId);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE FileUploadTable fu " +
+            "SET fu.deleted = true " +
+            "WHERE fu.saasFileId = :saasFileId AND fu.id IS NOT NULL")
+    void checkDelete(@Param("saasFileId") String saasFileId);
+
 }

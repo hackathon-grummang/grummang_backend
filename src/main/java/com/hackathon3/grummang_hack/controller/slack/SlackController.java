@@ -50,14 +50,15 @@ public class SlackController {
                 return INVALID_REQUEST();
             }
             slackChannelService.slackFirstChannels(workespace_id);
-
+            response.put("status", "success");
+            response.put("message", "Users saved successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e){
             log.error("Error fetching conversations", e);
             response.put("status","error");
             response.put("message","Error fetching conversations");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-        return null;
     }
 
     @PostMapping("/init/users")
@@ -69,15 +70,23 @@ public class SlackController {
             if (email == null || workespace_id == -1){
                 return INVALID_REQUEST();
             }
-            slackUserService.slackFirstUsers(workespace_id);
-
+            try{
+                slackUserService.slackFirstUsers(workespace_id);
+                response.put("status", "success");
+                response.put("message", "channel saved successfully");
+                return ResponseEntity.ok(response);
+            } catch (Exception e){
+                log.error("Error fetching conversations", e);
+                response.put("status","error");
+                response.put("message","Error fetching conversations");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
         } catch (Exception e){
             log.error("Error fetching conversations", e);
             response.put("status","error");
             response.put("message","Error fetching conversations");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-        return null;
     }
 
     @PostMapping("/init/files")
@@ -90,14 +99,15 @@ public class SlackController {
                 return INVALID_REQUEST();
             }
             slackFileService.fetchAndStoreFiles(workespace_id, "file_upload");
-
+            response.put("status", "success");
+            response.put("message", "File saved successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e){
             log.error("Error fetching conversations", e);
             response.put("status","error");
             response.put("message","Error fetching conversations");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-        return null;
     }
 
     @PostMapping("/init/all")
@@ -113,13 +123,16 @@ public class SlackController {
             slackUserService.slackFirstUsers(workespace_id);
             slackFileService.fetchAndStoreFiles(workespace_id, "file_upload");
 
+            response.put("status", "success");
+            response.put("message", "All saved successfully");
+            return ResponseEntity.ok(response);
+
         } catch (Exception e){
             log.error("Error fetching conversations", e);
             response.put("status","error");
             response.put("message","Error fetching conversations");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-        return null;
     }
     @PostMapping("/board/files/recent")
     public ResponseEntity<?> SlackBoardFilesRecent(@RequestBody RequestData request){
