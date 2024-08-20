@@ -11,6 +11,7 @@ import com.hackathon3.grummang_hack.repository.OrgSaaSRepo;
 import com.hackathon3.grummang_hack.repository.SaasRepo;
 import com.hackathon3.grummang_hack.repository.WorkSpaceConfigRepo;
 import com.slack.api.Slack;
+import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +82,6 @@ public class OrgSaasService {
         }
     }
 
-
     public OrgSaasResponse delete(OrgSaasRequest orgSaasRequest) {
         Optional<OrgSaaS> optionalOrgSaaS = orgSaaSRepo.findById(orgSaasRequest.getId());
 
@@ -94,6 +94,75 @@ public class OrgSaasService {
         } else {
             return new OrgSaasResponse( 199, "Not found for ID", null,null);
         }
+    }
 
+    public void updateOrgSaasGD(List<String[]> drives, String accessToken) {
+        List<OrgSaaS> tempOrgSaasList = orgSaaSRepo.findBySpaceId("TEMP");
+
+        if (tempOrgSaasList.isEmpty()) {
+            return;
+        }
+
+        // 드라이브 리스트 순회
+        for (int i = 0; i < drives.size(); i++) {
+            String[] driveInfo = drives.get(i);  // [0]: 드라이브 ID, [1]: 드라이브 이름
+
+            // DELETE 상태인 드라이브 처리
+            if ("DELETE".equals(driveInfo[0])) {
+                // spaceId가 TEMP인 튜플 모두 삭제
+                for (OrgSaaS orgSaas : tempOrgSaasList) {
+                    orgSaaSRepo.delete(orgSaas);
+
+                    Optional<WorkspaceConfig> optionalWorkspace = workSpaceConfigRepo.findById(orgSaas.getId());
+                    optionalWorkspace.ifPresent(workSpaceConfigRepo::delete);
+                }
+
+                return;
+            }
+
+            OrgSaaS orgSaas;
+            WorkspaceConfig workspace;
+
+            if (i < tempOrgSaasList.size()) {
+                // 기존 TEMP 튜플 업데이트
+                orgSaas = tempOrgSaasList.get(i);
+            } else {
+                // TEMP 튜플을 복제
+                OrgSaaS originalOrgSaas = tempOrgSaasList.get(0);  // 첫 번째 TEMP 튜플을 기준으로 복사
+                orgSaas = new OrgSaaS();
+                orgSaas.setOrg(originalOrgSaas.getOrg());
+                orgSaas.setSaas(originalOrgSaas.getSaas());
+                orgSaas.setSpaceId("TEMP");  // 나중에 업데이트될 것이므로 우선 TEMP로 설정
+                orgSaas = orgSaaSRepo.save(orgSaas);  // 복제된 튜플 저장
+
+                Optional<WorkspaceConfig> originalWorkspaceOpt = workSpaceConfigRepo.findById(originalOrgSaas.getId());
+                if (originalWorkspaceOpt.isPresent()) {
+                    WorkspaceConfig originalWorkspace = originalWorkspaceOpt.get();
+                    workspace = new WorkspaceConfig();
+                    workspace.setId(orgSaas.getId());
+                    workspace.setAlias(originalWorkspace.getAlias());
+                    workspace.setSaasAdminEmail(originalWorkspace.getSaasAdminEmail());
+                    workspace.setToken(originalWorkspace.getToken());
+                    workspace.setWebhook(originalWorkspace.getWebhook());
+                    workspace.setRegisterDate(originalWorkspace.getRegisterDate());
+                    workSpaceConfigRepo.save(workspace);
+                } else {
+                    continue;
+                }
+            }
+
+            orgSaas.setSpaceId(driveInfo[0]);
+            OrgSaaS saveOrgSaas = orgSaaSRepo.save(orgSaas);
+
+            Optional<WorkspaceConfig> optionalWorkspace = workSpaceConfigRepo.findById(orgSaas.getId());
+            if (optionalWorkspace.isPresent()) {
+                workspace = optionalWorkspace.get();
+                workspace.setWorkspaceName(driveInfo[1]);
+                workspace.setToken(optionalWorkspace.get().getToken());
+                workSpaceConfigRepo.save(workspace);
+            }
+
+//            rabbitTemplate.convertAndSend(rabbitMQConfig.getExchangeName(), rabbitMQConfig.getRoutingKey(), saveOrgSaas.getId());
+        }
     }
 }
