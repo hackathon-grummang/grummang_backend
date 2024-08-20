@@ -1,4 +1,4 @@
-package com.GASB.anti_malware.config;
+package com.hackathon3.grummang_hack.config;
 
 import com.hackathon3.grummang_hack.config.RabbitMQProperties;
 import org.springframework.amqp.core.*;
@@ -39,6 +39,11 @@ public class RabbitMQConfig {
         return new Queue(properties.getVtUploadQueue(), true, false, false);
     }
 
+    @Bean
+    public Queue groupingQueue() {
+        return new Queue(properties.getGroupingQueue(),true, false,false);
+    }
+
     // 교환기 설정
     @Bean
     public DirectExchange exchange() {
@@ -66,11 +71,24 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(vtUploadQueue).to(exchange).with(properties.getVtUploadRoutingKey());
     }
 
+    @Bean
+    public Binding groupingBinding(Queue groupingQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(groupingQueue).to(exchange).with(properties.getGroupingRoutingKey());
+    }
+
     // RabbitTemplate 설정
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setExchange(properties.getExchange());
+        return rabbitTemplate;
+    }
+
+    @Bean
+    public RabbitTemplate groupingRabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setExchange(properties.getExchange());
+        rabbitTemplate.setRoutingKey(properties.getGroupingRoutingKey());
         return rabbitTemplate;
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -15,4 +16,5 @@ public interface FileUploadTableRepo extends JpaRepository<FileUploadTable, Long
             "JOIN os.org o "+
             "WHERE fu.id = :fileId ")
     Optional<Long> findOrgIdByFileId(@Param("fileId") long fileId);
+    Optional<FileUploadTable> findByTimestampAndHash(LocalDateTime event_ts, String hash);
 }
