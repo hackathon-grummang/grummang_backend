@@ -6,6 +6,8 @@ import com.hackathon3.grummang_hack.service.register.GoogleUtil;
 import com.hackathon3.grummang_hack.service.register.OrgSaasService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,7 +43,29 @@ public class OrgSaasController {
     }
 
     @GetMapping("/test")
-    public void token(@RequestParam("code") String code){
+    public ResponseEntity<String> token(@RequestParam("code") String code){
         googleUtil.func(code);
+
+        // Return the HTML page with auto-close functionality
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .body("<!DOCTYPE html>" +
+                        "<html lang='en'>" +
+                        "<head>" +
+                        "<meta charset='UTF-8'>" +
+                        "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+                        "<title>Authorization Complete</title>" +
+                        "<script type='text/javascript'>" +
+                        "function closeTab() {" +
+                        "    alert('Google Drive 연동 성공');" +
+                        "    window.close();" +
+                        "}" +
+                        "window.onload = closeTab;" +
+                        "</script>" +
+                        "</head>" +
+                        "<body>" +
+                        "<p>Google Drive 연동 성공, 탭을 닫아주세요.</p>" +
+                        "</body>" +
+                        "</html>");
     }
 }

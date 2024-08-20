@@ -41,17 +41,16 @@ public class SlackController {
 
 
     @PostMapping("/init/channel")
-    public ResponseEntity<Map<String, String>> SlackinitChannel(@RequestBody RequestData request){
+    public ResponseEntity<Map<String, String>> SlackinitChannel(@RequestBody InitRequestData request){
         Map<String,String> response = new HashMap<>();
         try{
-            String email = request.getEmail();
-            int workespace_id = request.getWorkespace_id();
-            if (email == null || workespace_id == -1){
+            int workespace_id = request.getWorkspace_id();
+            if (workespace_id == -1){
                 return INVALID_REQUEST();
             }
             slackChannelService.slackFirstChannels(workespace_id);
             response.put("status", "success");
-            response.put("message", "Users saved successfully");
+            response.put("message", "Channel saved successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e){
             log.error("Error fetching conversations", e);
@@ -62,12 +61,11 @@ public class SlackController {
     }
 
     @PostMapping("/init/users")
-    public ResponseEntity<Map<String, String>> SlackinitUsers(@RequestBody RequestData request){
+    public ResponseEntity<Map<String, String>> SlackinitUsers(@RequestBody InitRequestData request){
         Map<String,String> response = new HashMap<>();
         try {
-            String email = request.getEmail();
-            int workespace_id = request.getWorkespace_id();
-            if (email == null || workespace_id == -1){
+            int workespace_id = request.getWorkspace_id();
+            if ( workespace_id == -1){
                 return INVALID_REQUEST();
             }
             try{
@@ -90,12 +88,11 @@ public class SlackController {
     }
 
     @PostMapping("/init/files")
-    public ResponseEntity<Map<String, String>> SlackinitFiles(@RequestBody RequestData request){
+    public ResponseEntity<Map<String, String>> SlackinitFiles(@RequestBody InitRequestData request){
         Map<String,String> response = new HashMap<>();
         try {
-            String email = request.getEmail();
-            int workespace_id = request.getWorkespace_id();
-            if (email == null || workespace_id == -1){
+            int workespace_id = request.getWorkspace_id();
+            if (workespace_id == -1){
                 return INVALID_REQUEST();
             }
             slackFileService.fetchAndStoreFiles(workespace_id, "file_upload");

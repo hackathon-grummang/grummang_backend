@@ -5,10 +5,7 @@ import com.hackathon3.grummang_hack.model.dto.file.FileHistoryTotalDto;
 import com.hackathon3.grummang_hack.repository.ActivitiesRepo;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,89 +55,42 @@ public class FileHistoryStatisticsService {
         return activitiesRepo.findTotalMovedCount(orgId);
     }
 
-    private List<FileHistoryStatistics> getFileHistoryStatisticsMonth(long orgId) {
-        List<LocalDate> allDates = getLast30Days();
-        LocalDateTime startDateTime = allDates.get(0).atStartOfDay();
-        LocalDateTime endDateTime = allDates.get(allDates.size() - 1).atTime(LocalTime.MAX);
-
-        List<Object[]> results = activitiesRepo.findFileHistoryStatistics(orgId, startDateTime, endDateTime);
-
-        Map<LocalDate, FileHistoryStatistics> statisticsMap = new HashMap<>();
-
-        for (Object[] row : results) {
-            LocalDate date = ((java.sql.Date) row[0]).toLocalDate(); // java.sql.Date를 LocalDate로 변환
-            int uploadCount = ((Number) row[1]).intValue();
-            int modifyCount = ((Number) row[2]).intValue();
-            int deletedCount = ((Number) row[3]).intValue();
-            int movedCount = ((Number) row[4]).intValue();
-
-            FileHistoryStatistics stats = FileHistoryStatistics.builder()
-                    .date(date.toString())
-                    .uploadCount(uploadCount)
-                    .deletedCount(deletedCount)
-                    .modifyCount(modifyCount)
-                    .movedCount(movedCount)
-                    .build();
-
-            statisticsMap.put(date, stats);
-        }
-
-        return allDates.stream()
-                .map(date -> statisticsMap.getOrDefault(date, FileHistoryStatistics.builder()
-                        .date(date.toString())
-                        .uploadCount(0)
-                        .deletedCount(0)
-                        .modifyCount(0)
-                        .movedCount(0)
-                        .build()))
-                .toList();
-    }
-
-
-    private List<LocalDate> getLast30Days() {
-        List<LocalDate> dates = new ArrayList<>();
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(29);
-
-        while (!startDate.isAfter(endDate)) {
-            dates.add(startDate);
-            startDate = startDate.plusDays(1);
-        }
-
-        return dates;
-    }
-
-    private List<FileHistoryStatistics> getFileHistoryStatisticsDay(long orgId) {
-        List<LocalDateTime> allHours = getLast24Hours();
-        LocalDateTime startDateTime = allHours.get(0).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime endDateTime = allHours.get(allHours.size() - 1).withMinute(59).withSecond(59).withNano(999999999);
+    public List<FileHistoryStatistics> getFileHistoryStatisticsDay(long orgId) {
+        List<LocalDateTime> allHours = getLast24Hours(); // 최근 24시간의 시간 단위 리스트
+        LocalDateTime startDateTime = allHours.get(0);
+        LocalDateTime endDateTime = allHours.get(allHours.size() - 1);
 
         List<Object[]> results = activitiesRepo.findFileHistoryStatistics(orgId, startDateTime, endDateTime);
 
         Map<LocalDateTime, FileHistoryStatistics> statisticsMap = new HashMap<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
         for (Object[] row : results) {
-            LocalDateTime dateTime = ((Timestamp) row[0]).toLocalDateTime(); // java.sql.Timestamp를 LocalDateTime으로 변환
+            LocalDateTime timestamp = (LocalDateTime) row[0]; // LocalDateTime으로 직접 처리
+            LocalDateTime hour = timestamp.withMinute(0).withSecond(0).withNano(0); // 시간 단위로 정규화
             int uploadCount = ((Number) row[1]).intValue();
             int modifyCount = ((Number) row[2]).intValue();
             int deletedCount = ((Number) row[3]).intValue();
             int movedCount = ((Number) row[4]).intValue();
 
-            FileHistoryStatistics stats = FileHistoryStatistics.builder()
-                    .date(dateTime.format(formatter)) // 날짜와 시간을 포맷팅하여 문자열로 변환
-                    .uploadCount(uploadCount)
-                    .deletedCount(deletedCount)
-                    .modifyCount(modifyCount)
-                    .movedCount(movedCount)
-                    .build();
+            FileHistoryStatistics stats = statisticsMap.getOrDefault(hour, FileHistoryStatistics.builder()
+                    .date(hour.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+                    .uploadCount(0)
+                    .deletedCount(0)
+                    .modifyCount(0)
+                    .movedCount(0)
+                    .build());
 
-            statisticsMap.put(dateTime.withMinute(0).withSecond(0).withNano(0), stats); // 시간 단위로 정규화하여 저장
+            stats.setUploadCount(stats.getUploadCount() + uploadCount);
+            stats.setModifyCount(stats.getModifyCount() + modifyCount);
+            stats.setDeletedCount(stats.getDeletedCount() + deletedCount);
+            stats.setMovedCount(stats.getMovedCount() + movedCount);
+
+            statisticsMap.put(hour, stats);
         }
 
         return allHours.stream()
-                .map(dateTime -> statisticsMap.getOrDefault(dateTime, FileHistoryStatistics.builder()
-                        .date(dateTime.format(formatter)) // 시간 단위로 포맷팅된 문자열 사용
+                .map(hour -> statisticsMap.getOrDefault(hour, FileHistoryStatistics.builder()
+                        .date(hour.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
                         .uploadCount(0)
                         .deletedCount(0)
                         .modifyCount(0)
