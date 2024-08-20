@@ -111,29 +111,34 @@ public class SlackController {
     }
 
     @PostMapping("/init/all")
-    public ResponseEntity<Map<String, String>> SlackinitAll(@RequestBody RequestData request){
-        Map<String,String> response = new HashMap<>();
+    public ResponseEntity<Map<String, String>> SlackinitAll(@RequestBody RequestData request) {
+        Map<String, String> response = new HashMap<>();
         try {
             String email = request.getEmail();
             int workespace_id = request.getWorkespace_id();
-            if (email == null || workespace_id == -1){
+            if (email == null || workespace_id == -1) {
                 return INVALID_REQUEST();
             }
-            slackChannelService.slackFirstChannels(workespace_id);
-            slackUserService.slackFirstUsers(workespace_id);
+
+            // 순차적으로 비동기 메서드를 실행
+            slackChannelService.slackFirstChannels(workespace_id).get(); // 첫 번째 메서드 실행 및 대기
+            slackUserService.slackFirstUsers(workespace_id).get(); // 두 번째 메서드 실행 및 대기
+
+            // 세 번째 메서드 실행
             slackFileService.fetchAndStoreFiles(workespace_id, "file_upload");
 
             response.put("status", "success");
             response.put("message", "All saved successfully");
             return ResponseEntity.ok(response);
 
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("Error fetching conversations", e);
-            response.put("status","error");
-            response.put("message","Error fetching conversations");
+            response.put("status", "error");
+            response.put("message", "Error fetching conversations");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
     @PostMapping("/board/files/recent")
     public ResponseEntity<?> SlackBoardFilesRecent(@RequestBody RequestData request){
         try {

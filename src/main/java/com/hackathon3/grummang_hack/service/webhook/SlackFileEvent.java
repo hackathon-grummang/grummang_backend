@@ -1,6 +1,7 @@
 package com.hackathon3.grummang_hack.service.webhook;
 
 
+import com.hackathon3.grummang_hack.model.dto.slack.event.SlackFileSharedEventDto;
 import com.hackathon3.grummang_hack.model.entity.Activities;
 import com.hackathon3.grummang_hack.model.entity.MonitoredUsers;
 import com.hackathon3.grummang_hack.model.entity.OrgSaaS;
