@@ -21,4 +21,6 @@ public class RabbitMQProperties {
     private String vtUploadRoutingKey;
     private String grmScanQueue;
     private String grmScanRoutingKey;
+    private String GoogledriveInitQueue;
+    private String GoogledriveInitRoutingKey;
 }
