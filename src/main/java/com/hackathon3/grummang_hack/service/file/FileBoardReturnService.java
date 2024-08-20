@@ -116,23 +116,25 @@ public class FileBoardReturnService {
         return dates;
     }
 
+    // 일 단위로 파일 통계 가져오기
     public List<StatisticsDto> getFileStatisticsLast24Hours(long orgId) {
         List<LocalDateTime> allHours = getLast24Hours();
         LocalDateTime startDateTime = allHours.get(0);
         LocalDateTime endDateTime = allHours.get(allHours.size() - 1);
 
+        // 파일 업로드 통계를 가져오는 쿼리 메서드 호출
         List<Object[]> results = fileUploadRepo.findStatistics(orgId, startDateTime, endDateTime);
 
         Map<LocalDateTime, StatisticsDto> statisticsMap = new HashMap<>();
 
         for (Object[] row : results) {
-            LocalDateTime timestamp = (LocalDateTime) row[0];
+            LocalDateTime timestamp = (LocalDateTime) row[0]; // LocalDateTime으로 처리
             LocalDateTime hour = timestamp.withMinute(0).withSecond(0).withNano(0); // 시간 단위로 정규화
             long totalSizeInBytes = ((Number) row[1]).longValue();
             long fileCount = ((Number) row[2]).longValue();
 
             StatisticsDto dto = statisticsMap.getOrDefault(hour, new StatisticsDto(
-                    hour.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                    hour.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")), // 포맷팅된 문자열
                     0,
                     0
             ));
@@ -143,6 +145,7 @@ public class FileBoardReturnService {
             statisticsMap.put(hour, dto);
         }
 
+        // 모든 시간 단위에 대해 데이터가 없는 경우를 처리
         return allHours.stream()
                 .map(hour -> statisticsMap.getOrDefault(hour, new StatisticsDto(
                         hour.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
@@ -152,6 +155,7 @@ public class FileBoardReturnService {
                 .toList();
     }
 
+    // 최근 24시간의 시간 단위 리스트 생성
     public List<LocalDateTime> getLast24Hours() {
         List<LocalDateTime> hours = new ArrayList<>();
         LocalDateTime endDateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0); // 현재 시간을 시간 단위로 정규화
@@ -164,7 +168,6 @@ public class FileBoardReturnService {
 
         return hours;
     }
-
 
 }
 

@@ -30,6 +30,9 @@ public interface ActivitiesRepo extends JpaRepository<Activities, Long> {
     @Query("SELECT a FROM Activities a WHERE a.saasFileId IN (SELECT f.saasFileId FROM FileUploadTable f WHERE f.hash = :hash) AND a.eventTs IN (SELECT f.timestamp FROM FileUploadTable f WHERE f.hash = :hash)")
     List<Activities> findByHash(@Param("hash") String hash);
 
+    @Query("SELECT a FROM Activities a WHERE a.user.orgSaaS.org.id = :orgId AND a.saasFileId IN (SELECT f.saasFileId FROM FileUploadTable f WHERE f.hash = :hash) AND a.eventTs IN (SELECT f.timestamp FROM FileUploadTable f WHERE f.hash = :hash)")
+    List<Activities> findByHashAndOrgId(@Param("hash") String hash, @Param("orgId") long orgId);
+
     @Query("SELECT a.user.orgSaaS.org.id FROM Activities a WHERE a.id = :activityId")
     Long findOrgIdByActivityId(@Param("activityId") long id);
 
@@ -45,7 +48,7 @@ public interface ActivitiesRepo extends JpaRepository<Activities, Long> {
             @Param("groupName") String groupName
     );
 
-    @Query("SELECT DATE(av.eventTs) AS date, " +
+    @Query("SELECT av.eventTs AS timestamp, " +
             "SUM(CASE WHEN av.eventType = 'file_upload' THEN 1 ELSE 0 END) AS uploadCount, " +
             "SUM(CASE WHEN av.eventType = 'file_change' THEN 1 ELSE 0 END) AS modifyCount, " +
             "SUM(CASE WHEN av.eventType = 'file_delete' THEN 1 ELSE 0 END) AS deletedCount, " +
@@ -54,7 +57,7 @@ public interface ActivitiesRepo extends JpaRepository<Activities, Long> {
             "JOIN av.user mu " +
             "JOIN mu.orgSaaS os " +
             "WHERE os.org.id = :orgId AND av.eventTs BETWEEN :startDate AND :endDate " +
-            "GROUP BY DATE(av.eventTs)")
+            "GROUP BY av.eventTs")
     List<Object[]> findFileHistoryStatistics(
             @Param("orgId") long orgId,
             @Param("startDate") LocalDateTime startDateTime,
