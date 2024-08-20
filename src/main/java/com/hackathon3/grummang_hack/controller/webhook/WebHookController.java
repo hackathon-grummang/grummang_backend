@@ -66,7 +66,7 @@ public class WebHookController {
                 case "file_deleted" -> {
                     SlackFileDeletedEventDto fileDeletedEventDto = webhookUtil.convertToFileDeletedEventDto(eventMap, teamId, org_webhook_url);
                     log.info("File deleted event: {}", fileDeletedEventDto);
-                    slackFileEvent.handleFileDeleteEvent(eventMap);
+                    slackFileEvent.handleFileDeleteEvent(webhookUtil.castToMapJson(fileDeletedEventDto));
                 }
                 default -> log.warn("Unsupported event type: {}", eventType);
             }

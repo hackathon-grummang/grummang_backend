@@ -72,7 +72,7 @@ public class SlackFileEvent {
 
            long timestamp = Long.parseLong(event_ts.split("\\.")[0]);
 
-           int org_saas_id = fileUploadRepository.findOrgSaaSIdByFileId(Long.parseLong(file_id));
+           int org_saas_id = fileUploadRepository.findOrgSaaSIdByFileId(file_id);
 
 
            try {

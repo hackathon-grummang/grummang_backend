@@ -108,12 +108,11 @@ public class SlackController {
     }
 
     @PostMapping("/init/all")
-    public ResponseEntity<Map<String, String>> SlackinitAll(@RequestBody RequestData request) {
+    public ResponseEntity<Map<String, String>> SlackinitAll(@RequestBody InitRequestData request) {
         Map<String, String> response = new HashMap<>();
         try {
-            String email = request.getEmail();
-            int workespace_id = request.getWorkespace_id();
-            if (email == null || workespace_id == -1) {
+            int workespace_id = request.getWorkspace_id();
+            if ( workespace_id == -1) {
                 return INVALID_REQUEST();
             }
 
