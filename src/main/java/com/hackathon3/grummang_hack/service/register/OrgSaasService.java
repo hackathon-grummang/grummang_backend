@@ -12,6 +12,7 @@ import com.hackathon3.grummang_hack.repository.SaasRepo;
 import com.hackathon3.grummang_hack.repository.WorkSpaceConfigRepo;
 import com.slack.api.Slack;
 import org.hibernate.jdbc.Work;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,15 +33,17 @@ public class OrgSaasService {
     private final OrgSaaSRepo orgSaaSRepo;
     private final WorkSpaceConfigRepo workSpaceConfigRepo;
     private final SlackTeamInfo slackTeamInfo;
+    private final RabbitTemplate initRabbitTemplate;
 
     @Autowired
-    public OrgSaasService(OrgRepo orgRepo, StartScan startScan, SaasRepo saasRepo, OrgSaaSRepo orgSaaSRepo, WorkSpaceConfigRepo workSpaceConfigRepo, SlackTeamInfo slackTeamInfo) {
+    public OrgSaasService(OrgRepo orgRepo, StartScan startScan, SaasRepo saasRepo, OrgSaaSRepo orgSaaSRepo, WorkSpaceConfigRepo workSpaceConfigRepo, SlackTeamInfo slackTeamInfo, RabbitTemplate initRabbitTemplate) {
         this.orgRepo = orgRepo;
         this.startScan = startScan;
         this.saasRepo = saasRepo;
         this.orgSaaSRepo = orgSaaSRepo;
         this.workSpaceConfigRepo = workSpaceConfigRepo;
         this.slackTeamInfo = slackTeamInfo;
+        this.initRabbitTemplate = initRabbitTemplate;
     }
 
     public OrgSaasResponse register(OrgSaasRequest orgSaasRequest) {
@@ -196,7 +199,7 @@ public class OrgSaasService {
         OrgSaaS orgSaaS = tempOrgSaasList.get(0); // 첫 번째 TEMP 상태의 OrgSaaS만 사용
 
         orgSaaS.setSpaceId(driveInfo[0]);
-        orgSaaSRepo.save(orgSaaS);
+        OrgSaaS saveOrgSaas = orgSaaSRepo.save(orgSaaS);
 
         Optional<WorkspaceConfig> optionalWorkspaceConfig = workSpaceConfigRepo.findById(orgSaaS.getId());
         if (optionalWorkspaceConfig.isPresent()) {
@@ -206,9 +209,6 @@ public class OrgSaasService {
             workspaceConfig.setOrgSaas(orgSaaS); // orgSaas 필드를 설정합니다.
             workSpaceConfigRepo.save(workspaceConfig);
         }
-
-        //
+        initRabbitTemplate.convertAndSend(saveOrgSaas.getId());
     }
-
-
 }
