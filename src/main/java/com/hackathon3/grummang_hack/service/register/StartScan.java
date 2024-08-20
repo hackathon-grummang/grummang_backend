@@ -18,7 +18,7 @@ public class StartScan {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JsonNode postToScan(Integer configId, String saasName) throws IOException, InterruptedException {
-        String url = "https://back.grummang.com/api/v1/connect/"+saasName+"/all";
+        String url = "http://localhost:8080/api/v1/connect/"+saasName+"/all";
 
         // HttpClient 생성
         HttpClient client = HttpClient.newHttpClient();
