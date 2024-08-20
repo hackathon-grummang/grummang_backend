@@ -1,4 +1,4 @@
-package com.GASB.slack_func.model.entity;
+package com.hackathon3.grummang_hack.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
