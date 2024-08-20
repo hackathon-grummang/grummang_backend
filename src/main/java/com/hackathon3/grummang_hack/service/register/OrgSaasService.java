@@ -25,14 +25,16 @@ import java.util.Optional;
 public class OrgSaasService {
 
     private final OrgRepo orgRepo;
+    private final StartScan startScan;
     private final SaasRepo saasRepo;
     private final OrgSaaSRepo orgSaaSRepo;
     private final WorkSpaceConfigRepo workSpaceConfigRepo;
     private final SlackTeamInfo slackTeamInfo;
 
     @Autowired
-    public OrgSaasService(OrgRepo orgRepo, SaasRepo saasRepo, OrgSaaSRepo orgSaaSRepo, WorkSpaceConfigRepo workSpaceConfigRepo, SlackTeamInfo slackTeamInfo) {
+    public OrgSaasService(OrgRepo orgRepo, StartScan startScan, SaasRepo saasRepo, OrgSaaSRepo orgSaaSRepo, WorkSpaceConfigRepo workSpaceConfigRepo, SlackTeamInfo slackTeamInfo) {
         this.orgRepo = orgRepo;
+        this.startScan = startScan;
         this.saasRepo = saasRepo;
         this.orgSaaSRepo = orgSaaSRepo;
         this.workSpaceConfigRepo = workSpaceConfigRepo;
@@ -104,12 +106,18 @@ public class OrgSaasService {
             workspaceConfig.setRegisterDate(ts);
 
             workspaceConfig.setOrgSaas(regiOrgSaas);  // OrgSaaS 객체를 설정
+            WorkspaceConfig regiWorkspace = workSpaceConfigRepo.save(workspaceConfig);
 
-            workSpaceConfigRepo.save(workspaceConfig);
+            String saasName = saas.getSaasName();
 
-            return new OrgSaasResponse(200, null, regiOrgSaas.getId(), ts);
+            try{
+                startScan.postToScan(regiWorkspace.getId(), saasName);
+
+                return new OrgSaasResponse(200, null, regiOrgSaas.getId(), ts);
+            } catch (Exception e) {
+                return new OrgSaasResponse(198, e.getMessage(), null, null);
+            }
         } catch (Exception e ) {
-            e.printStackTrace(); // 에러 로그 추가
             return new OrgSaasResponse(199, "Token Invalid, Nothing Stored", null, null);
         }
     }
@@ -165,6 +173,8 @@ public class OrgSaasService {
             workspaceConfig.setOrgSaas(orgSaaS); // orgSaas 필드를 설정합니다.
             workSpaceConfigRepo.save(workspaceConfig);
         }
+
+        //
     }
 
 
