@@ -91,4 +91,12 @@ public class RabbitMQConfig {
         rabbitTemplate.setRoutingKey(properties.getGroupingRoutingKey());
         return rabbitTemplate;
     }
+
+    @Bean
+    public RabbitTemplate initRabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setExchange(properties.getExchange());
+        rabbitTemplate.setRoutingKey(properties.getGoogledriveInitRoutingKey());
+        return rabbitTemplate;
+    }
 }
