@@ -30,7 +30,7 @@ public class FileBoardReturnService {
         int totalMalware = totalMalwareCount(orgId);
 
         List<TotalTypeDto> totalType = getFileTypeDistribution(orgId);
-        List<StatisticsDto> statistics = getFileStatisticsMonth(orgId);
+        List<StatisticsDto> statistics = getFileStatisticsLast24Hours(orgId);
 
         // FileDashboardDto 객체를 생성하고 반환
         return FileDashboardDto.builder()
@@ -115,5 +115,56 @@ public class FileBoardReturnService {
 
         return dates;
     }
+
+    public List<StatisticsDto> getFileStatisticsLast24Hours(long orgId) {
+        List<LocalDateTime> allHours = getLast24Hours();
+        LocalDateTime startDateTime = allHours.get(0);
+        LocalDateTime endDateTime = allHours.get(allHours.size() - 1);
+
+        List<Object[]> results = fileUploadRepo.findStatistics(orgId, startDateTime, endDateTime);
+
+        Map<LocalDateTime, StatisticsDto> statisticsMap = new HashMap<>();
+
+        for (Object[] row : results) {
+            LocalDateTime timestamp = (LocalDateTime) row[0];
+            LocalDateTime hour = timestamp.withMinute(0).withSecond(0).withNano(0); // 시간 단위로 정규화
+            long totalSizeInBytes = ((Number) row[1]).longValue();
+            long fileCount = ((Number) row[2]).longValue();
+
+            StatisticsDto dto = statisticsMap.getOrDefault(hour, new StatisticsDto(
+                    hour.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                    0,
+                    0
+            ));
+
+            dto.setCount(dto.getCount() + (int) fileCount);
+            dto.setVolume(dto.getVolume() + totalSizeInBytes);
+
+            statisticsMap.put(hour, dto);
+        }
+
+        return allHours.stream()
+                .map(hour -> statisticsMap.getOrDefault(hour, new StatisticsDto(
+                        hour.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                        0,
+                        0
+                )))
+                .toList();
+    }
+
+    public List<LocalDateTime> getLast24Hours() {
+        List<LocalDateTime> hours = new ArrayList<>();
+        LocalDateTime endDateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0); // 현재 시간을 시간 단위로 정규화
+        LocalDateTime startDateTime = endDateTime.minusHours(23); // 24시간 전부터 현재까지
+
+        while (!startDateTime.isAfter(endDateTime)) {
+            hours.add(startDateTime);
+            startDateTime = startDateTime.plusHours(1);
+        }
+
+        return hours;
+    }
+
+
 }
 
