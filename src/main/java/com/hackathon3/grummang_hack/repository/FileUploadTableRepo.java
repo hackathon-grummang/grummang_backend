@@ -21,8 +21,6 @@ public interface FileUploadTableRepo extends JpaRepository<FileUploadTable, Long
             "WHERE fu.id = :fileId ")
     Optional<Long> findOrgIdByFileId(@Param("fileId") long fileId);
 
-    Optional<FileUploadTable> findByTimestampAndHash(LocalDateTime event_ts, String hash);
-
     @Query("SELECT f.hash FROM FileUploadTable f WHERE f.saasFileId = :saasFileId")
     String findHashBySaasFileId(@Param("saasFileId") String saasFileId);
 

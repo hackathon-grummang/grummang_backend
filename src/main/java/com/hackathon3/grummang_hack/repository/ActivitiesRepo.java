@@ -12,8 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface ActivitiesRepo extends JpaRepository<Activities, Long> {
-  
-    Optional<Activities> findByEventTsAndEventType(LocalDateTime eventTs, String eventType);
 
     @Query("SELECT a FROM Activities a WHERE a.saasFileId = :saasFileId AND a.eventType = 'file_upload'")
     Activities getActivitiesBySaaSFileId(@Param("saasFileId") String saasFileId);
