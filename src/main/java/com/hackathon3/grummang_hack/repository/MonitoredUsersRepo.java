@@ -53,6 +53,8 @@ public interface MonitoredUsersRepo extends JpaRepository<MonitoredUsers, Long> 
                     "LIMIT 5")
     List<Object[]> findTopUsers(@Param("orgId") int orgId, @Param("saasId") int saasId);
 
+    @Query("SELECT u FROM MonitoredUsers u WHERE u.userId = :user_id AND u.orgSaaS.id = :orgSaaSId")
+    Optional<MonitoredUsers> findByUserIdAndOrgSaaSId(@Param("user_id") String userId, @Param("orgSaaSId") int orgSaaSId);
 
     @Query("SELECT u FROM MonitoredUsers u WHERE u.userId = :user_id AND u.orgSaaS.id = :orgSaaSId")
     Optional<MonitoredUsers> fineByUserIdAndorgSaaSId(@Param("user_id") String userId , @Param("orgSaaSId") int orgSaaSId);

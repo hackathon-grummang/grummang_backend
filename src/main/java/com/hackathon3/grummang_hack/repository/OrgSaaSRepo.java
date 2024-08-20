@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 import java.util.List;
 
 @Repository
@@ -13,6 +15,9 @@ public interface OrgSaaSRepo extends JpaRepository<OrgSaaS, Integer> {
 
     @Query("SELECT os.spaceId FROM OrgSaaS os WHERE os.id = :spaceId")
     String getSpaceID(@Param("spaceId")int workspaceId);
+
+    @Query("SELECT os FROM OrgSaaS os WHERE os.spaceId = :spaceId")
+    Optional<OrgSaaS> findBySpaceIdUsingQuery(String spaceId);
 
     List<OrgSaaS> findBySpaceId(String temp);
 

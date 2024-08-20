@@ -155,6 +155,7 @@ public class SlackUtil {
             try {
                 if (activityDuplicate(activity)) {
                     activitiesRepo.save(activity);
+                    messageSender.sendGroupingMessage(activity.getId());
                 } else {
                     log.warn("Duplicate activity detected and ignored: {}", file.getName());
                 }
@@ -177,7 +178,6 @@ public class SlackUtil {
                     try {
                         storedFileRepo.save(storedFile);
                         messageSender.sendMessage(storedFile.getId());
-                        messageSender.sendGroupingMessage(activity.getId());
                         log.info("File uploaded successfully: {}", file.getName());
                     } catch (DataIntegrityViolationException e) {
                         log.warn("Duplicate entry detected and ignored: {}", file.getName());
