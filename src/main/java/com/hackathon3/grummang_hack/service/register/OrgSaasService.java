@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +49,6 @@ public class OrgSaasService {
 
             String alias = orgSaasRequest.getAlias();
             String adminEmail = orgSaasRequest.getAdminEmail();
-            String apiToken = orgSaasRequest.getApiToken();
             String webhookUrl = orgSaasRequest.getWebhookUrl();
             Timestamp ts = Timestamp.valueOf(LocalDateTime.now());
 
@@ -129,72 +129,43 @@ public class OrgSaasService {
     }
 
     public void updateOrgSaasGD(List<String[]> drives, String accessToken) {
+        // TEMP 상태의 OrgSaaS 객체를 가져옵니다.
         List<OrgSaaS> tempOrgSaasList = orgSaaSRepo.findBySpaceId("TEMP");
 
-        if (tempOrgSaasList.isEmpty()) {
+        if (tempOrgSaasList.isEmpty() || drives.isEmpty()) {
+            // TEMP 상태의 OrgSaaS가 없거나, 드라이브 리스트가 비어 있으면 반환합니다.
             return;
         }
 
-        // 드라이브 리스트 순회
-        for (int i = 0; i < drives.size(); i++) {
-            String[] driveInfo = drives.get(i);  // [0]: 드라이브 ID, [1]: 드라이브 이름
+        // 첫 번째 드라이브 정보만 처리
+        String[] driveInfo = drives.get(0);
+//        System.out.println("Target Drive: " + Arrays.toString(driveInfo));
 
-            // DELETE 상태인 드라이브 처리
-            if ("DELETE".equals(driveInfo[0])) {
-                // spaceId가 TEMP인 튜플 모두 삭제
-                for (OrgSaaS orgSaas : tempOrgSaasList) {
-                    orgSaaSRepo.delete(orgSaas);
+        // DELETE인 튜플은 삭제
+        if ("DELETE".equals(driveInfo[0])) {
+            for (OrgSaaS orgSaaS : tempOrgSaasList) {
+                orgSaaSRepo.delete(orgSaaS);
 
-                    Optional<WorkspaceConfig> optionalWorkspace = workSpaceConfigRepo.findById(orgSaas.getId());
-                    optionalWorkspace.ifPresent(workSpaceConfigRepo::delete);
-                }
-
-                return;
+                Optional<WorkspaceConfig> optionalWorkspaceConfig = workSpaceConfigRepo.findById(orgSaaS.getId());
+                optionalWorkspaceConfig.ifPresent(workSpaceConfigRepo::delete);
             }
+            return;
+        }
 
-            OrgSaaS orgSaas;
-            WorkspaceConfig workspace;
+        OrgSaaS orgSaaS = tempOrgSaasList.get(0); // 첫 번째 TEMP 상태의 OrgSaaS만 사용
 
-            if (i < tempOrgSaasList.size()) {
-                // 기존 TEMP 튜플 업데이트
-                orgSaas = tempOrgSaasList.get(i);
-            } else {
-                // TEMP 튜플을 복제
-                OrgSaaS originalOrgSaas = tempOrgSaasList.get(0);  // 첫 번째 TEMP 튜플을 기준으로 복사
-                orgSaas = new OrgSaaS();
-                orgSaas.setOrg(originalOrgSaas.getOrg());
-                orgSaas.setSaas(originalOrgSaas.getSaas());
-                orgSaas.setSpaceId("TEMP");  // 나중에 업데이트될 것이므로 우선 TEMP로 설정
-                orgSaas = orgSaaSRepo.save(orgSaas);  // 복제된 튜플 저장
+        orgSaaS.setSpaceId(driveInfo[0]);
+        orgSaaSRepo.save(orgSaaS);
 
-                Optional<WorkspaceConfig> originalWorkspaceOpt = workSpaceConfigRepo.findById(originalOrgSaas.getId());
-                if (originalWorkspaceOpt.isPresent()) {
-                    WorkspaceConfig originalWorkspace = originalWorkspaceOpt.get();
-                    workspace = new WorkspaceConfig();
-                    workspace.setId(orgSaas.getId());
-                    workspace.setAlias(originalWorkspace.getAlias());
-                    workspace.setSaasAdminEmail(originalWorkspace.getSaasAdminEmail());
-                    workspace.setToken(originalWorkspace.getToken());
-                    workspace.setWebhook(originalWorkspace.getWebhook());
-                    workspace.setRegisterDate(originalWorkspace.getRegisterDate());
-                    workSpaceConfigRepo.save(workspace);
-                } else {
-                    continue;
-                }
-            }
-
-            orgSaas.setSpaceId(driveInfo[0]);
-            OrgSaaS saveOrgSaas = orgSaaSRepo.save(orgSaas);
-
-            Optional<WorkspaceConfig> optionalWorkspace = workSpaceConfigRepo.findById(orgSaas.getId());
-            if (optionalWorkspace.isPresent()) {
-                workspace = optionalWorkspace.get();
-                workspace.setWorkspaceName(driveInfo[1]);
-                workspace.setToken(optionalWorkspace.get().getToken());
-                workSpaceConfigRepo.save(workspace);
-            }
-
-//            rabbitTemplate.convertAndSend(rabbitMQConfig.getExchangeName(), rabbitMQConfig.getRoutingKey(), saveOrgSaas.getId());
+        Optional<WorkspaceConfig> optionalWorkspaceConfig = workSpaceConfigRepo.findById(orgSaaS.getId());
+        if (optionalWorkspaceConfig.isPresent()) {
+            WorkspaceConfig workspaceConfig = optionalWorkspaceConfig.get();
+            workspaceConfig.setWorkspaceName(driveInfo[1]);
+            workspaceConfig.setToken(accessToken);
+            workspaceConfig.setOrgSaas(orgSaaS); // orgSaas 필드를 설정합니다.
+            workSpaceConfigRepo.save(workspaceConfig);
         }
     }
+
+
 }
