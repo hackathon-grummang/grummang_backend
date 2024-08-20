@@ -13,8 +13,10 @@ import java.util.List;
 @Builder
 public class VtRequestDto {
     private List<Long> fileIds;
+    private long orgId;
 
-    public VtRequestDto(List<Long> fileIds){
+    public VtRequestDto(List<Long> fileIds, long orgId){
         this.fileIds = fileIds;
+        this.orgId = orgId;
     }
 }
