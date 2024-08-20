@@ -16,6 +16,10 @@ public class Activities {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne
+    @JoinColumn(name = "id", referencedColumnName = "id", nullable = false)
+    private FileGroup fileGroup;
+
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private MonitoredUsers user;

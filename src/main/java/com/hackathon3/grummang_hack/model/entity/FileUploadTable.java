@@ -32,12 +32,17 @@ public class FileUploadTable {
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
+    @ManyToOne
+    @JoinColumn(name = "salted_hash", referencedColumnName = "salted_hash", insertable = false, updatable = false)
+    private StoredFile storedFile;
+
     @Builder
-    public FileUploadTable(OrgSaaS orgSaaS, String saasFileId, String hash, LocalDateTime timestamp, boolean deleted) {
+    public FileUploadTable(OrgSaaS orgSaaS, String saasFileId, String hash, LocalDateTime timestamp, boolean deleted, StoredFile storedFile) {
         this.orgSaaS = orgSaaS;
         this.saasFileId = saasFileId;
         this.hash = hash;
         this.deleted = deleted;
         this.timestamp = timestamp;
+        this.storedFile = storedFile;
     }
 }

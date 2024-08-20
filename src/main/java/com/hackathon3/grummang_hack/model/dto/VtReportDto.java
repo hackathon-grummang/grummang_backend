@@ -9,6 +9,7 @@ import lombok.Setter;
 @Builder
 public class VtReportDto {
     private String type;
+    private String sha256;
     private String v3;
     private String alyac;
     private String kaspersky;
