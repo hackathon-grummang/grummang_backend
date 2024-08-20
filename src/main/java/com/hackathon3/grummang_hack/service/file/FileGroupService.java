@@ -5,6 +5,7 @@ import com.hackathon3.grummang_hack.model.entity.FileGroup;
 import com.hackathon3.grummang_hack.model.entity.MonitoredUsers;
 import com.hackathon3.grummang_hack.repository.ActivitiesRepo;
 import com.hackathon3.grummang_hack.repository.FileGroupRepo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FileGroupService {
     private static final double SIM_THRESHOLD = 0.8;
 
@@ -114,14 +116,31 @@ public class FileGroupService {
 
         // 조건에 맞는 그룹이 없거나 그룹 이름을 업데이트하지 않은 경우, 현재 파일의 그룹을 설정
         if (!groupUpdated) {
-            updateFileGroup(activity.getId(), actFileName, actFileType);
+            // Check if there's already a FileGroup with the same fileId and type
+            FileGroup existingGroup = fileGroupRepo.findByActivityIdAndGroupType(actId, actFileType);
+            if (existingGroup != null) {
+                // Update the existing group if it exists
+                existingGroup.setGroupName(actFileName);
+                fileGroupRepo.save(existingGroup);
+            } else {
+                // Create a new group if it does not exist
+                updateFileGroup(activity.getId(), actFileName, actFileType);
+            }
         }
     }
 
-    private void updateFileGroup(long activityId, String groupName, String groupType) {
-        // FileGroup 객체를 생성하여 데이터베이스에 저장
-        FileGroup fileGroup = new FileGroup(activityId, groupName, groupType); // groupType 추가
-        fileGroupRepo.save(fileGroup);
+    public void updateFileGroup(long activityId, String groupName, String groupType) {
+        FileGroup existingGroup = fileGroupRepo.findByActivityIdAndGroupType(activityId, groupType);
+        if (existingGroup != null) {
+            // Update existing group
+            existingGroup.setGroupName(groupName);
+            fileGroupRepo.save(existingGroup);
+        } else {
+            // Create a new group
+            FileGroup fileGroup = new FileGroup(activityId, groupName, groupType); // groupType 추가
+            fileGroupRepo.save(fileGroup);
+        }
     }
+
 
 }
