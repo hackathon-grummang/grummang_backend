@@ -38,11 +38,12 @@ public class WebHookController {
             Map<String, Object> eventMap = webhookUtil.castToMap(payload.get("event"));
             String eventType = (String) eventMap.get("type");
             String teamId = (String) payload.get("team_id");
+            log.info("payload: {}", payload);
             switch (eventType) {
                 case "file_shared" -> {
                     SlackFileSharedEventDto fileSharedEventDto = webhookUtil.convertToFileSharedEventDto(eventMap, teamId, org_webhook_url);
                     log.info("File shared event: {}", fileSharedEventDto);
-                    slackFileEvent.handleFileEvent(eventMap, "file_upload");
+                    slackFileEvent.handleFileEvent(webhookUtil.castToMapJson(fileSharedEventDto), "file_upload");
                 }
                 case "member_joined_channel" -> {
                     SlackMemberJoinedChannelEventDto memberJoinedChannelEventDto = webhookUtil.convertToMemberJoinedChannelEventDto(eventMap, teamId,org_webhook_url);
@@ -60,12 +61,12 @@ public class WebHookController {
                 case "file_change" ->{
                     SlackFileChangeEventDto fileChangeEventDto = webhookUtil.convertToFileChangeEventDto(eventMap, teamId, org_webhook_url);
                     log.info("File change event: {}", fileChangeEventDto);
-                    slackFileEvent.handleFileEvent(eventMap, "file_change");
+                    slackFileEvent.handleFileEvent(webhookUtil.castToMapJson(fileChangeEventDto), "file_change");
                 }
                 case "file_deleted" -> {
                     SlackFileDeletedEventDto fileDeletedEventDto = webhookUtil.convertToFileDeletedEventDto(eventMap, teamId, org_webhook_url);
                     log.info("File deleted event: {}", fileDeletedEventDto);
-                    slackFileEvent.handleFileDeleteEvent(eventMap);
+                    slackFileEvent.handleFileDeleteEvent(webhookUtil.castToMapJson(fileDeletedEventDto));
                 }
                 default -> log.warn("Unsupported event type: {}", eventType);
             }

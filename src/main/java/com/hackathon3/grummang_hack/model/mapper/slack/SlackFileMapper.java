@@ -4,6 +4,7 @@ import com.hackathon3.grummang_hack.model.entity.*;
 import com.hackathon3.grummang_hack.repository.MonitoredUsersRepo;
 import com.slack.api.model.File;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class SlackFileMapper {
 
@@ -46,25 +48,32 @@ public class SlackFileMapper {
         if (file == null) {
             return null;
         }
+        LocalDateTime adjustedTimestamp = timestamp != null
+                ? timestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+                : LocalDateTime.ofInstant(Instant.ofEpochSecond(file.getTimestamp()), ZoneId.of("Asia/Seoul"));
+        log.info("File timestamp: {}", adjustedTimestamp);
         return FileUploadTable.builder()
                 .orgSaaS(orgSaas)
                 .saasFileId(file.getId())
                 .hash(hash)
-                .timestamp(timestamp != null ? timestamp : LocalDateTime.ofInstant(Instant.ofEpochSecond(file.getTimestamp()), ZoneId.systemDefault()))
+                .timestamp(adjustedTimestamp)
                 .build();
     }
 
 
-    public Activities toActivityEntity(File file, String eventType, MonitoredUsers user, String channel) {
+    public Activities toActivityEntity(File file, String eventType, MonitoredUsers user, String channel, LocalDateTime timestamp) {
         if (file == null) {
             return null;
         }
+        LocalDateTime adjustedTimestamp = timestamp != null
+                ? timestamp.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+                : LocalDateTime.ofInstant(Instant.ofEpochSecond(file.getTimestamp()), ZoneId.of("Asia/Seoul"));
         return Activities.builder()
                 .user(user)
                 .eventType(eventType)
                 .saasFileId(file.getId())
                 .fileName(file.getTitle())
-                .eventTs(LocalDateTime.ofInstant(Instant.ofEpochSecond(file.getTimestamp()), ZoneId.systemDefault()))
+                .eventTs(adjustedTimestamp)
                 .uploadChannel(file.getChannels().isEmpty() ? null : channel)
                 .build();
     }
@@ -75,7 +84,7 @@ public class SlackFileMapper {
                 .eventType(eventType)
                 .saasFileId(file_id)
                 .fileName(file_name)
-                .eventTs(LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault()))
+                .eventTs(LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.of("Asia/Seoul")))
                 .uploadChannel("deleted")
                 .build();
     }

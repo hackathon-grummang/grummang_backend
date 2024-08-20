@@ -1,6 +1,7 @@
 package com.hackathon3.grummang_hack.service.webhook;
 
 
+import com.hackathon3.grummang_hack.model.dto.slack.event.SlackFileSharedEventDto;
 import com.hackathon3.grummang_hack.model.entity.Activities;
 import com.hackathon3.grummang_hack.model.entity.MonitoredUsers;
 import com.hackathon3.grummang_hack.model.entity.OrgSaaS;
@@ -71,7 +72,7 @@ public class SlackFileEvent {
 
            long timestamp = Long.parseLong(event_ts.split("\\.")[0]);
 
-           int org_saas_id = fileUploadRepository.findOrgSaaSIdByFileId(Long.parseLong(file_id));
+           int org_saas_id = fileUploadRepository.findOrgSaaSIdByFileId(file_id);
 
 
            try {

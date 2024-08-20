@@ -1,6 +1,7 @@
 package com.hackathon3.grummang_hack.service.slack;
 
 
+import com.hackathon3.grummang_hack.config.RabbitMQProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,16 +14,19 @@ public class MessageSender {
 
     private final RabbitTemplate rabbitTemplate;
     private final RabbitTemplate groupingRabbitTemplate;
+    private final RabbitMQProperties properties;
 
     @Autowired
     public MessageSender(@Qualifier("rabbitTemplate") RabbitTemplate rabbitTemplate,
-                         @Qualifier("groupingRabbitTemplate") RabbitTemplate groupingRabbitTemplate) {
+                         @Qualifier("groupingRabbitTemplate") RabbitTemplate groupingRabbitTemplate,
+                         RabbitMQProperties properties) {
         this.rabbitTemplate = rabbitTemplate;
         this.groupingRabbitTemplate = groupingRabbitTemplate;
+        this.properties = properties;
     }
 
     public void sendMessage(Long message) {
-        rabbitTemplate.convertAndSend(message);
+        rabbitTemplate.convertAndSend(properties.getFileRoutingKey(),message);
         System.out.println("Sent message to default queue: " + message);
     }
 

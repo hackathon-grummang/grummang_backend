@@ -1,5 +1,6 @@
 package com.hackathon3.grummang_hack.service.webhook;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hackathon3.grummang_hack.model.dto.slack.event.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,10 @@ public class WebhookUtil {
     @SuppressWarnings("unchecked")
     public Map<String, Object> castToMap(Object object) {
         return (Map<String, Object>) object;
+    }
+    public Map<String, Object> castToMapJson(Object object) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.convertValue(object, Map.class);
     }
 
     public SlackFileSharedEventDto convertToFileSharedEventDto(Map<String, Object> eventMap, String teamId, String org_webhook_url) {

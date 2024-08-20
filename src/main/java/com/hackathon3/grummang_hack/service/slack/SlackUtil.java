@@ -113,7 +113,7 @@ public class SlackUtil {
         String hash = calculateHash(fileData);
         String workspaceName = worekSpaceRepo.findById(workspaceId).get().getWorkspaceName();
         LocalDateTime changeTime = null;
-        if (event_type.length() > 12) {
+        if (event_type.contains(":")) {
             String[] event = event_type.split(":");
             try {
                 // UNIX 타임스탬프가 포함된 경우
@@ -147,8 +147,9 @@ public class SlackUtil {
         String s3Key = String.format("%s/%s/%s/%s/%s/%s", orgName, saasName, workspaceName, channelName, hash, file.getTitle());
 
         StoredFile storedFile = slackFileMapper.toStoredFileEntity(file, hash, s3Key);
+        log.info("changeTime : {}", changeTime);
         FileUploadTable fileUploadTableObject = slackFileMapper.toFileUploadEntity(file, orgSaaSObject, hash, changeTime);
-        Activities activity = slackFileMapper.toActivityEntity(file, event_type, user,uploadedChannelPath);
+        Activities activity = slackFileMapper.toActivityEntity(file, event_type, user,uploadedChannelPath, changeTime);
 
         synchronized (this) {
             // 활동 및 파일 업로드 정보 저장 (중복 체크 후 저장)
