@@ -10,10 +10,12 @@ import com.hackathon3.grummang_hack.repository.OrgRepo;
 import com.hackathon3.grummang_hack.repository.OrgSaaSRepo;
 import com.hackathon3.grummang_hack.repository.SaasRepo;
 import com.hackathon3.grummang_hack.repository.WorkSpaceConfigRepo;
+import com.hackathon3.grummang_hack.service.util.AESUtil;
 import com.slack.api.Slack;
 import org.hibernate.jdbc.Work;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -34,6 +36,9 @@ public class OrgSaasService {
     private final WorkSpaceConfigRepo workSpaceConfigRepo;
     private final SlackTeamInfo slackTeamInfo;
     private final RabbitTemplate initRabbitTemplate;
+
+    @Value("${aes.key}")
+    private String aesKey;
 
     @Autowired
     public OrgSaasService(OrgRepo orgRepo, StartScan startScan, SaasRepo saasRepo, OrgSaaSRepo orgSaaSRepo, WorkSpaceConfigRepo workSpaceConfigRepo, SlackTeamInfo slackTeamInfo, RabbitTemplate initRabbitTemplate) {
@@ -63,9 +68,6 @@ public class OrgSaasService {
             orgSaas.setSaas(saas);
             orgSaas.setSpaceId("TEMP");
             OrgSaaS regiOrgSaas = orgSaaSRepo.save(orgSaas);
-
-            // ID 수동 설정 부분 제거
-            // workspaceConfig.setId(regiOrgSaas.getId());
 
             workspaceConfig.setWorkspaceName("TEMP");
             workspaceConfig.setAlias(alias);
@@ -100,13 +102,10 @@ public class OrgSaasService {
             orgSaas.setSpaceId(spaceId);
             OrgSaaS regiOrgSaas = orgSaaSRepo.save(orgSaas);
 
-            // ID 수동 설정 부분 제거
-            // workspaceConfig.setId(regiOrgSaas.getId());
-
             workspaceConfig.setWorkspaceName(spaceName);
             workspaceConfig.setAlias(alias);
             workspaceConfig.setSaasAdminEmail(adminEmail);
-            workspaceConfig.setToken(apiToken);
+            workspaceConfig.setToken(AESUtil.encrypt(apiToken, aesKey));
             workspaceConfig.setWebhook(webhookUrl);
             workspaceConfig.setRegisterDate(ts);
 
@@ -205,7 +204,7 @@ public class OrgSaasService {
         if (optionalWorkspaceConfig.isPresent()) {
             WorkspaceConfig workspaceConfig = optionalWorkspaceConfig.get();
             workspaceConfig.setWorkspaceName(driveInfo[1]);
-            workspaceConfig.setToken(accessToken);
+            workspaceConfig.setToken(AESUtil.encrypt(accessToken, aesKey));
             workspaceConfig.setOrgSaas(orgSaaS); // orgSaas 필드를 설정합니다.
             workSpaceConfigRepo.save(workspaceConfig);
         }
