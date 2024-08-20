@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.sql.Timestamp;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @Table(name = "workspace_config")
 public class WorkspaceConfig {

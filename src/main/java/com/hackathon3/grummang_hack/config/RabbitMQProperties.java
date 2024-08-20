@@ -19,6 +19,6 @@ public class RabbitMQProperties {
     private String vtReportRoutingKey;
     private String vtUploadQueue;
     private String vtUploadRoutingKey;
-    private String GrmScanQueue;
-    private String GrmScanRoutingKey;
+    private String grmScanQueue;
+    private String grmScanRoutingKey;
 }

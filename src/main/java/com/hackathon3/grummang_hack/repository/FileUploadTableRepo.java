@@ -13,7 +13,11 @@ import java.util.Optional;
 
 @Repository
 public interface FileUploadTableRepo extends JpaRepository<FileUploadTable, Long> {
-
+    @Query("SELECT o.id FROM FileUploadTable fu " +
+            "JOIN fu.orgSaaS os " +
+            "JOIN os.org o "+
+            "WHERE fu.id = :fileId ")
+    Optional<Long> findOrgIdByFileId(@Param("fileId") long fileId);
     Optional<FileUploadTable> findByTimestampAndHash(LocalDateTime event_ts, String hash);
 
     @Query("SELECT SlackRecentFileDTO(a.fileName, u.userName, sf.type, fu.timestamp) " +

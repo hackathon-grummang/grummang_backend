@@ -4,81 +4,72 @@ import com.hackathon3.grummang_hack.config.RabbitMQProperties;
 import com.hackathon3.grummang_hack.model.dto.ResponseDto;
 import com.hackathon3.grummang_hack.model.dto.VtRequestDto;
 import com.hackathon3.grummang_hack.model.dto.VtUploadResponse;
-import com.hackathon3.grummang_hack.repository.AdminUsersRepo;
 import com.hackathon3.grummang_hack.repository.FileUploadTableRepo;
 import com.hackathon3.grummang_hack.service.vt.FileStatusService;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-@RestController
-@RequestMapping("/api/v1/vt")
-@RequiredArgsConstructor
-public class VirusTotalController {
+    @RestController
+    @RequestMapping("/api/v1/vt")
+    public class VirusTotalController {
 
-    private final FileStatusService fileStatusService;
-    private final RabbitTemplate rabbitTemplate;
-    private final RabbitMQProperties properties;
-    private final AdminUsersRepo adminRepo;
-    private final FileUploadTableRepo fileUploadRepo;
+        private final FileStatusService fileStatusService;
+        private final RabbitTemplate rabbitTemplate;
+        private final RabbitMQProperties properties;
+        private final FileUploadTableRepo fileUploadRepo;
+        private static final long ORG_ID = 1;
 
-
-    @GetMapping
-    public String hello(){
-        return "Hello vt world";
-    }
-
-    @PostMapping("/upload")
-    public ResponseDto<List<VtUploadResponse>> vtUpload(@RequestBody VtRequestDto vtRequestDto, HttpServletRequest servletRequest) {
-        Map<String, Object> response = new HashMap<>();
-
-        // JWT 검증 실패 시 에러 메시지 반환
-        String errorMessage = (String) servletRequest.getAttribute("error");
-        if (errorMessage != null) {
-            return ResponseDto.ofFail(errorMessage);
+        @Autowired
+        public VirusTotalController(FileStatusService fileStatusService, RabbitTemplate rabbitTemplate, RabbitMQProperties properties, FileUploadTableRepo fileUploadRepo) {
+            this.fileStatusService = fileStatusService;
+            this.rabbitTemplate = rabbitTemplate;
+            this.properties = properties;
+            this.fileUploadRepo = fileUploadRepo;
         }
 
-        try {
-            // 요청한 사용자(Admin)의 이메일을 통해 orgId 조회
-            String email = (String) servletRequest.getAttribute("email");
-            long orgId = adminRepo.findByEmail(email)
-                    .orElseThrow(() -> new NoSuchElementException("Admin not found with email: " + email))
-                    .getOrg()
-                    .getId();
+        @GetMapping
+        public String hello(){
+            return "Hello vt world";
+        }
 
-            List<VtUploadResponse> results = new ArrayList<>();
+        @PostMapping("/upload")
+        public ResponseDto<List<VtUploadResponse>> vtUpload(@RequestBody VtRequestDto vtRequestDto) {
+            Map<String, Object> response = new HashMap<>();
 
-            // 파일 ID 목록에 대한 처리
-            for (Long fileId : vtRequestDto.getFileIds()) {
-                if (!fileUploadRepo.findOrgIdByHash(fileId).orElseThrow(() ->
-                                new NoSuchElementException("File not found with id: " + fileId))
-                        .equals(orgId)) {
-                    response.put("error_message", "Unauthorized access to file.");
-                    return ResponseDto.ofFail(response);
-                }
+            try {
+                List<VtUploadResponse> results = new ArrayList<>();
 
-                // 파일 상태에 따른 처리
-                int vtStatus = fileStatusService.getVtStatusByFileId(fileId);
-                VtUploadResponse.VtUploadResponseBuilder responseBuilder = VtUploadResponse.builder().fileId(fileId);
+                // 파일 ID 목록에 대한 처리
+                for (Long fileId : vtRequestDto.getFileIds()) {
+                    if (!fileUploadRepo.findOrgIdByFileId(fileId).orElseThrow(() ->
+                                    new NoSuchElementException("File not found with id: " + fileId))
+                            .equals(ORG_ID)) {
+                        response.put("error_message", "Unauthorized access to file.");
+                        return ResponseDto.ofFail(response);
+                    }
 
-                switch (vtStatus) {
-                    case 1 -> results.add(responseBuilder.analysisId("Report Already exists.").build());
-                    case 0 -> results.add(responseBuilder.analysisId("Analysis is processing.").build());
-                    default -> {
-                        // 새 분석 요청
-                        rabbitTemplate.convertAndSend(properties.getVtUploadRoutingKey(), fileId);
-                        results.add(responseBuilder.analysisId("Upload Request Success.").build());
+                    // 파일 상태에 따른 처리
+                    int vtStatus = fileStatusService.getVtStatusByFileId(fileId);
+                    VtUploadResponse.VtUploadResponseBuilder responseBuilder = VtUploadResponse.builder().fileId(fileId);
+
+                    switch (vtStatus) {
+                        case 1 -> results.add(responseBuilder.analysisId("Report Already exists.").build());
+                        case 0 -> results.add(responseBuilder.analysisId("Analysis is processing.").build());
+                        default -> {
+                            // 새 분석 요청
+                            rabbitTemplate.convertAndSend(properties.getVtUploadRoutingKey(), fileId);
+                            results.add(responseBuilder.analysisId("Upload Request Success.").build());
+                        }
                     }
                 }
+                return ResponseDto.ofSuccess(results);
+
+            } catch (Exception e) {
+                return ResponseDto.ofFail(e.getMessage());
             }
-            return ResponseDto.ofSuccess(results);
-
-        } catch (Exception e) {
-            return ResponseDto.ofFail(e.getMessage());
         }
-    }
 
-}
+    }

@@ -39,6 +39,11 @@ public class RabbitMQConfig {
         return new Queue(properties.getVtUploadQueue(), true, false, false);
     }
 
+    @Bean
+    public Queue groupingQueue() {
+        return new Queue(properties.getGroupingQueue(),true, false,false);
+    }
+
     // 교환기 설정
     @Bean
     public DirectExchange exchange() {
@@ -64,6 +69,11 @@ public class RabbitMQConfig {
     @Bean
     public Binding vtUploadBinding(Queue vtUploadQueue, DirectExchange exchange) {
         return BindingBuilder.bind(vtUploadQueue).to(exchange).with(properties.getVtUploadRoutingKey());
+    }
+
+    @Bean
+    public Binding groupingBinding(Queue groupingQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(groupingQueue).to(exchange).with(properties.getGroupingRoutingKey());
     }
 
     // RabbitTemplate 설정
