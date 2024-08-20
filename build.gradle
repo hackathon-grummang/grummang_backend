@@ -49,8 +49,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'com.rabbitmq:amqp-client'
 
-	//model mapper
-	implementation 'org.modelmapper:modelmapper:3.1.0'
+	//Apache Tika
+	implementation 'org.apache.tika:tika-core:2.9.2'
+	implementation 'org.apache.tika:tika-parsers-standard-package:2.9.2'
+
 }
 
 tasks.named('test') {
