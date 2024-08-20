@@ -18,7 +18,8 @@ public interface FileUploadTableRepo extends JpaRepository<FileUploadTable, Long
             "JOIN os.org o "+
             "WHERE fu.id = :fileId ")
     Optional<Long> findOrgIdByFileId(@Param("fileId") long fileId);
-    Optional<FileUploadTable> findByTimestampAndHash(LocalDateTime event_ts, String hash);
+    @Query("SELECT f FROM FileUploadTable f WHERE f.timestamp = :timestamp AND f.hash = :hash")
+    Optional<FileUploadTable> findByTimestampAndHash(@Param("timestamp") LocalDateTime timestamp, @Param("hash") String hash);
 
     @Query("SELECT SlackRecentFileDTO(a.fileName, u.userName, sf.type, fu.timestamp) " +
             "FROM FileUploadTable fu " +
@@ -30,6 +31,4 @@ public interface FileUploadTableRepo extends JpaRepository<FileUploadTable, Long
             "AND a.eventType = 'file_upload' " +  // 조건 추가
             "ORDER BY fu.timestamp DESC LIMIT 10")
     List<SlackRecentFileDto> findRecentFilesByOrgIdAndSaasId(@Param("orgId") int orgId, @Param("saasId") int saasId);
-
-    Optional<Object> findOrgIdByHash(Long fileId);
 }
