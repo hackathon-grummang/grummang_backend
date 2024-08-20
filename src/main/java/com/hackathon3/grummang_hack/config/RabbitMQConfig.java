@@ -30,8 +30,8 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue grmScanQueue() {
-        return new Queue(properties.getGrmScanQueue(), true, false, false);
+    public Queue gdInitQueue() {
+        return new Queue(properties.getGoogleInitQueue(), true, false, false);
     }
 
     @Bean
@@ -62,8 +62,8 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding grmScanBinding(Queue grmScanQueue, DirectExchange exchange) {
-        return BindingBuilder.bind(grmScanQueue).to(exchange).with(properties.getGrmScanRoutingKey());
+    public Binding gdInitBinding(Queue gdInitQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(gdInitQueue).to(exchange).with(properties.getGoogledriveRoutingKey());
     }
 
     @Bean
@@ -96,7 +96,7 @@ public class RabbitMQConfig {
     public RabbitTemplate initRabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setExchange(properties.getExchange());
-        rabbitTemplate.setRoutingKey(properties.getGoogledriveInitRoutingKey());
+        rabbitTemplate.setRoutingKey(properties.getGoogledriveRoutingKey());
         return rabbitTemplate;
     }
 }

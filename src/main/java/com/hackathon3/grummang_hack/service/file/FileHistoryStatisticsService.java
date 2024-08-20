@@ -5,9 +5,11 @@ import com.hackathon3.grummang_hack.model.dto.file.FileHistoryTotalDto;
 import com.hackathon3.grummang_hack.repository.ActivitiesRepo;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +30,7 @@ public class FileHistoryStatisticsService {
         int totalMoved = getTotalMovedCount(orgId);
 
         // FileHistoryStatistics 리스트 생성
-        List<FileHistoryStatistics> fileHistoryStatisticsList = getFileHistoryStatisticsMonth(orgId);
+        List<FileHistoryStatistics> fileHistoryStatisticsList = getFileHistoryStatisticsDay(orgId);
 
         // FileHistoryTotalDto 객체 생성 및 반환
         return FileHistoryTotalDto.builder()
@@ -106,5 +108,57 @@ public class FileHistoryStatisticsService {
         }
 
         return dates;
+    }
+
+    private List<FileHistoryStatistics> getFileHistoryStatisticsDay(long orgId) {
+        List<LocalDateTime> allHours = getLast24Hours();
+        LocalDateTime startDateTime = allHours.get(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime endDateTime = allHours.get(allHours.size() - 1).withMinute(59).withSecond(59).withNano(999999999);
+
+        List<Object[]> results = activitiesRepo.findFileHistoryStatistics(orgId, startDateTime, endDateTime);
+
+        Map<LocalDateTime, FileHistoryStatistics> statisticsMap = new HashMap<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        for (Object[] row : results) {
+            LocalDateTime dateTime = ((Timestamp) row[0]).toLocalDateTime(); // java.sql.Timestamp를 LocalDateTime으로 변환
+            int uploadCount = ((Number) row[1]).intValue();
+            int modifyCount = ((Number) row[2]).intValue();
+            int deletedCount = ((Number) row[3]).intValue();
+            int movedCount = ((Number) row[4]).intValue();
+
+            FileHistoryStatistics stats = FileHistoryStatistics.builder()
+                    .date(dateTime.format(formatter)) // 날짜와 시간을 포맷팅하여 문자열로 변환
+                    .uploadCount(uploadCount)
+                    .deletedCount(deletedCount)
+                    .modifyCount(modifyCount)
+                    .movedCount(movedCount)
+                    .build();
+
+            statisticsMap.put(dateTime.withMinute(0).withSecond(0).withNano(0), stats); // 시간 단위로 정규화하여 저장
+        }
+
+        return allHours.stream()
+                .map(dateTime -> statisticsMap.getOrDefault(dateTime, FileHistoryStatistics.builder()
+                        .date(dateTime.format(formatter)) // 시간 단위로 포맷팅된 문자열 사용
+                        .uploadCount(0)
+                        .deletedCount(0)
+                        .modifyCount(0)
+                        .movedCount(0)
+                        .build()))
+                .toList();
+    }
+
+    private List<LocalDateTime> getLast24Hours() {
+        List<LocalDateTime> hours = new ArrayList<>();
+        LocalDateTime endDateTime = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime startDateTime = endDateTime.minusHours(23);
+
+        while (!startDateTime.isAfter(endDateTime)) {
+            hours.add(startDateTime);
+            startDateTime = startDateTime.plusHours(1);
+        }
+
+        return hours;
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+import java.util.List;
+
 @Repository
 public interface OrgSaaSRepo extends JpaRepository<OrgSaaS, Integer> {
 
@@ -15,4 +17,11 @@ public interface OrgSaaSRepo extends JpaRepository<OrgSaaS, Integer> {
     String getSpaceID(@Param("spaceId")int workspaceId);
 
     Optional<OrgSaaS> findBySpaceId(String spaceId);
+
+    List<OrgSaaS> findBySpaceId(String temp);
+
+    List<OrgSaaS> findByOrgId(Integer orgId);
 }
+
+
+

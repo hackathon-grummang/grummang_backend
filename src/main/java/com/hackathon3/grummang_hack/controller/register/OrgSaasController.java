@@ -2,13 +2,13 @@ package com.hackathon3.grummang_hack.controller.register;
 
 import com.hackathon3.grummang_hack.model.dto.OrgSaasRequest;
 import com.hackathon3.grummang_hack.model.dto.OrgSaasResponse;
+import com.hackathon3.grummang_hack.service.register.GoogleUtil;
 import com.hackathon3.grummang_hack.service.register.OrgSaasService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/org-saas")
@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrgSaasController {
 
     private final OrgSaasService orgSaasService;
+    private final GoogleUtil googleUtil;
 
     @Autowired
-    public OrgSaasController(OrgSaasService orgSaasService) {
+    public OrgSaasController(OrgSaasService orgSaasService, GoogleUtil googleUtil) {
         this.orgSaasService = orgSaasService;
+        this.googleUtil = googleUtil;
     }
 
 
@@ -31,5 +33,15 @@ public class OrgSaasController {
     @PostMapping("/delete")
     public OrgSaasResponse delete(@RequestBody OrgSaasRequest orgSaasRequest) {
         return orgSaasService.delete(orgSaasRequest);
+    }
+
+    @GetMapping("/{orgId}")
+    public List<OrgSaasResponse> getOrgSaasList(@PathVariable Integer orgId) {
+        return orgSaasService.getOrgSaasList(orgId);
+    }
+
+    @GetMapping("/test")
+    public void token(@RequestParam("code") String code){
+        googleUtil.func(code);
     }
 }
