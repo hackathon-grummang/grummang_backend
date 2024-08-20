@@ -20,7 +20,6 @@ import java.util.*;
         private final RabbitTemplate rabbitTemplate;
         private final RabbitMQProperties properties;
         private final FileUploadTableRepo fileUploadRepo;
-        private static final long ORG_ID = 1;
 
         @Autowired
         public VirusTotalController(FileStatusService fileStatusService, RabbitTemplate rabbitTemplate, RabbitMQProperties properties, FileUploadTableRepo fileUploadRepo) {
@@ -41,12 +40,12 @@ import java.util.*;
 
             try {
                 List<VtUploadResponse> results = new ArrayList<>();
-
+                long orgId = vtRequestDto.getOrgId();
                 // 파일 ID 목록에 대한 처리
                 for (Long fileId : vtRequestDto.getFileIds()) {
                     if (!fileUploadRepo.findOrgIdByFileId(fileId).orElseThrow(() ->
                                     new NoSuchElementException("File not found with id: " + fileId))
-                            .equals(ORG_ID)) {
+                            .equals(orgId)) {
                         response.put("error_message", "Unauthorized access to file.");
                         return ResponseDto.ofFail(response);
                     }
