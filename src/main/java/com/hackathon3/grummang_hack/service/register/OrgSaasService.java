@@ -105,7 +105,8 @@ public class OrgSaasService {
             workspaceConfig.setWorkspaceName(spaceName);
             workspaceConfig.setAlias(alias);
             workspaceConfig.setSaasAdminEmail(adminEmail);
-            workspaceConfig.setToken(AESUtil.encrypt(apiToken, aesKey));
+//            workspaceConfig.setToken(AESUtil.encrypt(apiToken, aesKey));
+            workspaceConfig.setToken(apiToken);
             workspaceConfig.setWebhook(webhookUrl);
             workspaceConfig.setRegisterDate(ts);
 
@@ -204,7 +205,8 @@ public class OrgSaasService {
         if (optionalWorkspaceConfig.isPresent()) {
             WorkspaceConfig workspaceConfig = optionalWorkspaceConfig.get();
             workspaceConfig.setWorkspaceName(driveInfo[1]);
-            workspaceConfig.setToken(AESUtil.encrypt(accessToken, aesKey));
+//            workspaceConfig.setToken(AESUtil.encrypt(accessToken, aesKey));
+            workspaceConfig.setToken(accessToken);
             workspaceConfig.setOrgSaas(orgSaaS); // orgSaas 필드를 설정합니다.
             workSpaceConfigRepo.save(workspaceConfig);
         }
