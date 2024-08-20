@@ -7,13 +7,13 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class SlackRecentFileDtO {
+public class SlackRecentFileDto {
     private String fileName;
     private String uploadedBy;
     private String fileType;
     private LocalDateTime uploadTimestamp;
 
-    public SlackRecentFileDtO(String fileName, String uploadedBy, String fileType, LocalDateTime uploadTimestamp) {
+    public SlackRecentFileDto(String fileName, String uploadedBy, String fileType, LocalDateTime uploadTimestamp) {
         this.fileName = fileName;
         this.uploadedBy = uploadedBy;
         this.fileType = fileType;

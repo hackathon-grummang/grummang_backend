@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface ActivitiesRepo extends JpaRepository<Activities, Long> {
-
+  
     Optional<Activities> findByEventTsAndEventType(LocalDateTime eventTs, String eventType);
 
     @Query("SELECT a FROM Activities a WHERE a.saasFileId = :saasFileId AND a.eventType = 'file_upload'")
@@ -91,5 +91,7 @@ public interface ActivitiesRepo extends JpaRepository<Activities, Long> {
             "WHERE os.org.id = :orgId AND av.eventType = 'file_move'")
     int findTotalMovedCount(@Param("orgId") long orgId);
 
+    @Query("SELECT a FROM Activities a WHERE a.eventTs = :eventTs AND a.eventType = :eventType")
+    Optional<Activities> findByEventTsAndEventType(@Param("eventTs") LocalDateTime eventTs, @Param("eventType") String eventType);
 
 }
