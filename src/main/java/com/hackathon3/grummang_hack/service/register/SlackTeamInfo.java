@@ -51,6 +51,7 @@ public class SlackTeamInfo {
                 teamInfo.add(teamName);
                 teamInfo.add(teamId);
 
+                System.out.println(teamInfo);
                 // 특정 값 반환
                 return teamInfo;
             } else {
