@@ -1,16 +1,14 @@
 package com.hackathon3.grummang_hack.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Collections;
 import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -48,4 +46,5 @@ public class OrgSaaS {
     public List<ChannelList> getChannels() {
         return Collections.unmodifiableList(channels);
     }
+
 }
