@@ -54,29 +54,6 @@ public class FileStatusService {
         fileStatusRepository.save(fileStatus);
     }
 
-    public List<FileListDto> getFileWithUnScannedVt() {
-        List<FileStatus> fileStatuses = fileStatusRepository.findByVtStatus(-1);
-        return fileStatuses.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    private FileListDto convertToDto(FileStatus fileStatus) {
-        StoredFile storedFile = fileStatus.getStoredFile();
-        VtReport vtReport = storedFile.getVtReport();
-        VtReportDto vtReportDto = (vtReport != null) ? convertToVtReportDto(vtReport) : null;
-        FileStatusDto fileStatusDto = convertToFileStatusDto(fileStatus);
-
-        return FileListDto.builder()
-                .id(storedFile.getId())
-                .saltedHash(storedFile.getSaltedHash())
-                .size(storedFile.getSize())
-                .type(storedFile.getType())
-                .vtReport(vtReportDto)
-                .fileStatus(fileStatusDto)
-                .build();
-    }
-
     @Transactional
     public void updateVtStatus(Long fileId, int status) {
         // 리포트가 성공적으로 저장된 경우 status를 업데이트 해줌

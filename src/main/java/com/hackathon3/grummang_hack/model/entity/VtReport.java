@@ -29,7 +29,7 @@ public class VtReport {
     private String v3;
 
     @Column(name = "alyac")
-    private String aLYac;
+    private String alyac;
 
     @Column(name = "kaspersky")
     private String kaspersky;
