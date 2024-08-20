@@ -13,4 +13,6 @@ import java.util.Optional;
 public interface ActivitiesRepo extends JpaRepository<Activities, Long> {
     @Query("SELECT a FROM Activities a WHERE a.eventTs = :eventTs AND a.eventType = :eventType")
     Optional<Activities> findByEventTsAndEventType(@Param("eventTs") LocalDateTime eventTs, @Param("eventType") String eventType);
+
+    boolean existsBySaasFileIdAndEventTs(String saasFileId, LocalDateTime eventTs);
 }
