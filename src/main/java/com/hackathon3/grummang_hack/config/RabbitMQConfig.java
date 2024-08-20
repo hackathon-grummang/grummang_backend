@@ -1,4 +1,4 @@
-package com.GASB.anti_malware.config;
+package com.hackathon3.grummang_hack.config;
 
 import com.hackathon3.grummang_hack.config.RabbitMQProperties;
 import org.springframework.amqp.core.*;
@@ -71,6 +71,14 @@ public class RabbitMQConfig {
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setExchange(properties.getExchange());
+        return rabbitTemplate;
+    }
+
+    @Bean
+    public RabbitTemplate groupingRabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setExchange(properties.getExchange());
+        rabbitTemplate.setRoutingKey(properties.getGroupingRoutingKey());
         return rabbitTemplate;
     }
 }
