@@ -24,8 +24,6 @@ public class GoogleUtilService {
 
     private final WorkSpaceConfigRepo workspaceConfigRepo;
 
-    @Value("${aes.key}")
-    private String key;
 
     public Credential selectToken(int workspace_id) {
         try {
