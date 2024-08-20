@@ -42,6 +42,38 @@ public class OrgSaasService {
         OrgSaaS orgSaas = new OrgSaaS();
         WorkspaceConfig workspaceConfig = new WorkspaceConfig();
 
+        if(orgSaasRequest.getSaasId() == 6) {
+            Org org = orgRepo.findById(orgSaasRequest.getOrgId()).orElseThrow(() -> new RuntimeException("Org not found"));
+            Saas saas = saasRepo.findById(orgSaasRequest.getSaasId()).orElseThrow(() -> new RuntimeException("SaaS not found"));
+
+            String alias = orgSaasRequest.getAlias();
+            String adminEmail = orgSaasRequest.getAdminEmail();
+            String apiToken = orgSaasRequest.getApiToken();
+            String webhookUrl = orgSaasRequest.getWebhookUrl();
+            Timestamp ts = Timestamp.valueOf(LocalDateTime.now());
+
+            orgSaas.setOrg(org);
+            orgSaas.setSaas(saas);
+            orgSaas.setSpaceId("TEMP");
+            OrgSaaS regiOrgSaas = orgSaaSRepo.save(orgSaas);
+
+            // ID 수동 설정 부분 제거
+            // workspaceConfig.setId(regiOrgSaas.getId());
+
+            workspaceConfig.setWorkspaceName("TEMP");
+            workspaceConfig.setAlias(alias);
+            workspaceConfig.setSaasAdminEmail(adminEmail);
+            workspaceConfig.setToken("TEMP");
+            workspaceConfig.setWebhook(webhookUrl);
+            workspaceConfig.setRegisterDate(ts);
+
+            workspaceConfig.setOrgSaas(regiOrgSaas);  // OrgSaaS 객체를 설정
+
+            WorkspaceConfig regiWorkspace = workSpaceConfigRepo.save(workspaceConfig);
+
+            return new OrgSaasResponse(200, "Waiting Google Drive", regiOrgSaas.getId(), regiWorkspace.getRegisterDate());
+        }
+
         try {
             List<String> slackInfo = slackTeamInfo.getTeamInfo(orgSaasRequest.getApiToken());
 
