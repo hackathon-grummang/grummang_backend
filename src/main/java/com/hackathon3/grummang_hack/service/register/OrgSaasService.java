@@ -37,8 +37,8 @@ public class OrgSaasService {
     private final SlackTeamInfo slackTeamInfo;
     private final RabbitTemplate initRabbitTemplate;
 
-    @Value("${aes.key}")
-    private String aesKey;
+//    @Value("${aes.key}")
+//    private String aesKey;
 
     @Autowired
     public OrgSaasService(OrgRepo orgRepo, StartScan startScan, SaasRepo saasRepo, OrgSaaSRepo orgSaaSRepo, WorkSpaceConfigRepo workSpaceConfigRepo, SlackTeamInfo slackTeamInfo, RabbitTemplate initRabbitTemplate) {
@@ -105,7 +105,7 @@ public class OrgSaasService {
             workspaceConfig.setWorkspaceName(spaceName);
             workspaceConfig.setAlias(alias);
             workspaceConfig.setSaasAdminEmail(adminEmail);
-            workspaceConfig.setToken(AESUtil.encrypt(apiToken, aesKey));
+            workspaceConfig.setToken(apiToken);
             workspaceConfig.setWebhook(webhookUrl);
             workspaceConfig.setRegisterDate(ts);
 
@@ -204,7 +204,7 @@ public class OrgSaasService {
         if (optionalWorkspaceConfig.isPresent()) {
             WorkspaceConfig workspaceConfig = optionalWorkspaceConfig.get();
             workspaceConfig.setWorkspaceName(driveInfo[1]);
-            workspaceConfig.setToken(AESUtil.encrypt(accessToken, aesKey));
+            workspaceConfig.setToken(accessToken);
             workspaceConfig.setOrgSaas(orgSaaS); // orgSaas 필드를 설정합니다.
             workSpaceConfigRepo.save(workspaceConfig);
         }
