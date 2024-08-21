@@ -40,16 +40,8 @@ import java.util.*;
 
             try {
                 List<VtUploadResponse> results = new ArrayList<>();
-                long orgId = vtRequestDto.getOrgId();
                 // 파일 ID 목록에 대한 처리
-                for (Long fileId : vtRequestDto.getFileIds()) {
-                    if (!fileUploadRepo.findOrgIdByFileId(fileId).orElseThrow(() ->
-                                    new NoSuchElementException("File not found with id: " + fileId))
-                            .equals(orgId)) {
-                        response.put("error_message", "Unauthorized access to file.");
-                        return ResponseDto.ofFail(response);
-                    }
-
+                for (Long fileId : vtRequestDto.getFileIds()) { //storedFile Id
                     // 파일 상태에 따른 처리
                     int vtStatus = fileStatusService.getVtStatusByFileId(fileId);
                     VtUploadResponse.VtUploadResponseBuilder responseBuilder = VtUploadResponse.builder().fileId(fileId);
